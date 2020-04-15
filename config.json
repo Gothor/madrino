@@ -1,0 +1,161 @@
+{
+  "tilePadding": 25,
+  "tileWidth": 150,
+  "tileHeight": 150,
+  "tiles":[
+    {
+      "x": 0,
+      "y": 0,
+      "type": "wall",
+      "results": ["1v", "2v", "1j", "2j"],
+      "positions": ["left"]
+    },
+    {
+      "x": 150,
+      "y": 0,
+      "type": "wall",
+      "results": ["3v", "4v", "3j", "4j"],
+      "positions": ["left", "top"]
+    },
+    {
+      "x": 300,
+      "y": 0,
+      "type": "wall",
+      "results": ["5j", "6j"],
+      "positions": ["left", "top", "right"]
+    },
+    {
+      "x": 450,
+      "y": 0,
+      "type": "wall",
+      "results": ["1g"],
+      "positions": ["center"]
+    },
+    {
+      "x": 600,
+      "y": 0,
+      "type": "wall",
+      "results": ["2g"],
+      "positions": ["center"]
+    },
+    {
+      "x": 750,
+      "y": 0,
+      "type": "wall",
+      "results": ["5v", "6v"],
+      "positions": ["left", "top", "center"]
+    },
+    {
+      "x": 900,
+      "y": 0,
+      "type": "wall",
+      "results": ["3g"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1050,
+      "y": 0,
+      "type": "facility",
+      "results": ["5v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1200,
+      "y": 0,
+      "type": "facility",
+      "results": ["5v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1350,
+      "y": 0,
+      "type": "facility",
+      "results": ["6v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1500,
+      "y": 0,
+      "type": "facility",
+      "results": ["6v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 0,
+      "y": 150,
+      "type": "wall",
+      "results": ["6g", "6b"],
+      "positions": ["left", "top", "center"]
+    },
+    {
+      "x": 150,
+      "y": 150,
+      "type": "wall",
+      "results": ["3b"],
+      "positions": ["bottom", "center"]
+    },
+    {
+      "x": 300,
+      "y": 150,
+      "type": "wall",
+      "results": ["5b"],
+      "positions": ["left", "right"]
+    },
+    {
+      "x": 450,
+      "y": 150,
+      "type": "wall",
+      "results": ["4g", "5g", "4b"],
+      "positions": ["left", "top"]
+    },
+    {
+      "x": 600,
+      "y": 150,
+      "type": "wall",
+      "results": ["1b"],
+      "positions": ["left"]
+    },
+    {
+      "x": 750,
+      "y": 150,
+      "type": "wall",
+      "results": ["2b"],
+      "positions": ["left"]
+    },
+    {
+      "x": 900,
+      "y": 150,
+      "type": "facility",
+      "results": ["3v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1050,
+      "y": 150,
+      "type": "facility",
+      "results": ["4v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1200,
+      "y": 150,
+      "type": "facility",
+      "results": ["4v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1350,
+      "y": 150,
+      "type": "facility",
+      "results": ["2v"],
+      "positions": ["center"]
+    },
+    {
+      "x": 1500,
+      "y": 150,
+      "type": "facility",
+      "results": ["1v"],
+      "positions": ["center"]
+    }
+  ]
+}
