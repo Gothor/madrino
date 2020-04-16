@@ -1,5 +1,16 @@
 let gameObjects = [];
 
+let currentCursor = "auto";
+let nextCursor;
+
+function resetCursor() {
+  nextCursor = "auto";
+}
+
+function setCursor(cursor) {
+  nextCursor = cursor;
+}
+
 let registerGlobalGameObject = object => {
   if (gameObjects.indexOf(object) < 0) {
     gameObjects.push(object);
@@ -67,11 +78,16 @@ class GameObject {
   }
   
   _draw() {
+    push();
+    translate(this.localPosition.x, this.localPosition.y);
+    
     this.draw();
     
     for (let child of this.children) {
       child._draw();
     }
+
+    pop();
   }
 
   draw() {
@@ -88,6 +104,16 @@ class GameObject {
     }
 
     return this.components.find(c => c instanceof type);
+  }
+
+  _onMove(x, y) {
+    if (this.onMove) {
+      this.onMove(x, y);
+    }
+
+    for (let child of this.children) {
+      if (child._onMove) child._onMove(x, y);
+    }
   }
 
 }
@@ -161,16 +187,9 @@ class Rectangle extends Component {
   }
 
   draw() {
-    let pos = this.localPosition;
-
-    push();
-    translate(pos.x, pos.y);
-
     stroke(0);
     fill(150);
     rect(pos.x, pos.y, this.dimensions.x, this.dimensions.y);
-
-    pop();
   }
 
 }
@@ -194,18 +213,11 @@ class Text extends Component {
   }
 
   draw() {
-    let pos = this.localPosition;
-
-    push();
-    translate(pos.x, pos.y);
-
     noStroke();
     fill(0);
     textSize(24);
     textAlign(this.horizontalAlignment, this.verticalAlignment);
     text(this.text, 0, 0);
-
-    pop();
   }
 
 }
@@ -220,16 +232,9 @@ class ImageComponent extends Component {
   }
 
   draw() {
-    let pos = this.localPosition;
-
-    push();
-    translate(pos.x, pos.y);
-
     fill(255, 0, 0);
     stroke(0);
     this.sprite.draw(0, 0, this.dimensions.x, this.dimensions.y);
-
-    pop();
   }
 
 }
@@ -248,7 +253,7 @@ class Clickable extends GameObject {
     if (!collider) return false;
     if (collider.doesNotCollide(x, y)) return false;
 
-    this.onClick();
+    this.onClick(x, y);
     return true;
   }
 
@@ -264,6 +269,7 @@ class Button extends Clickable {
     super(x, y, w, h, parent);
     this.dimensions = new p5.Vector(w, h);
     this.onClick = callback;
+    this.hovered = false;
 
     // Text
     if (typeof(content) === "string") {
@@ -284,12 +290,15 @@ class Button extends Clickable {
     }
   }
 
+  onMove(x, y) {
+    if (this.getComponent(Collider).collides(x, y)) {
+      this.hovered = true;
+    } else {
+      this.hovered = false;
+    }
+  }
+
   draw() {
-    let pos = this.globalPosition;
-
-    push();
-    translate(pos.x, pos.y);
-
     let content = this.getComponent(Text) || this.getComponent(ImageComponent);
 
     if (content instanceof Text) {
@@ -297,7 +306,9 @@ class Button extends Clickable {
     }
     content.draw();
 
-    pop();
+    if (this.hovered) {
+      setCursor("pointer");
+    }
   }
 
 }
@@ -325,8 +336,8 @@ class Sprite {
 
 class SelectableGroup extends GameObject {
 
-  constructor(selectables) {
-    super(0, 0);
+  constructor(x, y, selectables) {
+    super(x, y);
     
     if (selectables instanceof Array && selectables.every(s => s instanceof Selectable)) {
       for (let selectable of selectables) {
@@ -368,7 +379,36 @@ class SelectableGroup extends GameObject {
   }
   
   draw() {
-    return;
+    noStroke();
+    fill(255, 150);
+
+    rect(0, 0, 400, 450, 5);
+
+    // Aides couleurs murs
+    noStroke();
+    fill(0, 150, 0);
+    rect(25, 25, 50, 50);
+    fill(210, 150, 0);
+    rect(25, 75, 50, 50);
+    fill(140, 135, 120);
+    rect(25, 125, 50, 50);
+    fill(200, 225, 255);
+    rect(25, 175, 50, 50);
+  
+    // Aides couleurs meubles
+    noStroke();
+    fill(0, 150, 0);
+    beginShape();
+    vertex(25, 275);
+    vertex(75, 275);
+    vertex(25, 325);
+    endShape();
+    fill(210, 150, 0);
+    beginShape();
+    vertex(75, 275);
+    vertex(75, 325);
+    vertex(25, 325);
+    endShape();
   }
   
   _onClick(x, y) {
@@ -429,14 +469,9 @@ class Selectable extends Button {
 
   draw() {
     if (this.selected) {
-      push();
-      translate(this.localPosition.x, this.localPosition.y);
-
       noFill();
       stroke(0);
       rect(0, 0, this.dimensions.x, this.dimensions.y);
-
-      pop();
     }
 
     super.draw();
@@ -447,8 +482,77 @@ class Selectable extends Button {
 class GridView extends Clickable {
   
   constructor(grid, x, y, w, h, parent) {
-    super(x, y, w, h);
+    super(x, y, w, h, parent);
     this.grid = grid;
+  }
+
+  draw() {
+    noStroke();
+    fill(255);
+    rect(-25, -25, TILE_WIDTH * (8 + 0.25) + 75, TILE_WIDTH * (8 + 0.25) + 75);
+
+    // Border
+    stroke(200);
+    for (let i = 0; i < this.grid.length + 1; i++) {
+      line(0, TILE_WIDTH * (i + 0.25), TILE_WIDTH * (this.grid.length + 0.5), TILE_WIDTH * (i + 0.25));
+      line(TILE_WIDTH * (i + 0.25), 0, TILE_WIDTH * (i + 0.25), TILE_WIDTH * (this.grid.length + 0.5));
+    }
+
+    // Axis
+    stroke(150);
+    fill(150)
+    ellipse(TILE_WIDTH * 4.25, TILE_WIDTH * 4.25, 5);
+    line(0, TILE_WIDTH * 4.25, TILE_WIDTH * (this.grid.length + 0.5), TILE_WIDTH * 4.25);
+    line(TILE_WIDTH * 4.25, 0, TILE_WIDTH * 4.25, TILE_WIDTH * (this.grid.length + 0.5));
+    line(TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25);
+    line(TILE_WIDTH * 7.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25);
+    stroke(0, 150, 0);
+    line(TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 1.25);
+    stroke(150, 0, 0);
+    line(TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25);
+
+    // Tiles
+    translate(TILE_WIDTH / 4, TILE_WIDTH / 4);
+    textAlign(CENTER, CENTER);
+    for (let y = 0; y < this.grid.length; y++) {
+      for (let x = 0; x < this.grid[y].length; x++) {
+        push();
+        translate(TILE_WIDTH * x, TILE_WIDTH * y);
+
+        for (let tile of this.grid[y][x]) {
+          tile.draw(-TILE_WIDTH / 4, -TILE_WIDTH / 4);
+        }
+
+        pop();
+      }
+    }
+
+    // Preview current tile
+    if (mouseX - this.localPosition.x >= TILE_WIDTH / 4 && mouseX - this.localPosition.x < TILE_WIDTH / 4 + TILE_WIDTH * this.grid.length &&
+      mouseY - this.localPosition.y >= TILE_WIDTH / 4 && mouseY - this.localPosition.y < TILE_WIDTH / 4 + TILE_WIDTH * this.grid.length) {
+
+      let x = floor((mouseX - this.localPosition.x - TILE_WIDTH / 4) / TILE_WIDTH);
+      let y = floor((mouseY - this.localPosition.y - TILE_WIDTH / 4) / TILE_WIDTH);
+
+      push();
+      translate(x * TILE_WIDTH, y * TILE_WIDTH);
+      tint(255, 100);
+      let playedTile = new PlayedTile(tileSelector.value, currentOrientation, currentFlip);
+      playedTile.draw(-TILE_WIDTH / 4, -TILE_WIDTH / 4);
+
+      pop();
+    }
+  }
+
+  onClick(mouseX, mouseY) {
+    if (mouseX - this.localPosition.x < TILE_WIDTH / 4 || mouseX - this.localPosition.x >= TILE_WIDTH / 4 + TILE_WIDTH * this.grid.length ||
+      mouseY - this.localPosition.y < TILE_WIDTH / 4 || mouseY - this.localPosition.y >= TILE_WIDTH / 4 + TILE_WIDTH * this.grid.length) return;
+
+    let x = floor((mouseX - this.localPosition.x - TILE_WIDTH / 4) / TILE_WIDTH);
+    let y = floor((mouseY - this.localPosition.y - TILE_WIDTH / 4) / TILE_WIDTH);
+
+    let playedTile = new PlayedTile(tileSelector.value, currentOrientation, currentFlip);
+    this.grid.addMove(x, y, playedTile);
   }
   
 }
@@ -467,94 +571,20 @@ class Grid extends Array {
     this.moves = [];
   }
 
-  draw() {
-    
-    push();
-
-    translate(25, 25);
-    
-    noStroke();
-    fill(255);
-    rect(-25, -25, TILE_WIDTH * (8 + 0.25) + 75, TILE_WIDTH * (8 + 0.25) + 75);
-
-    // Border
-    stroke(200);
-    for (let i = 0; i < this.length + 1; i++) {
-      line(0, TILE_WIDTH * (i + 0.25), TILE_WIDTH * (this.length + 0.5), TILE_WIDTH * (i + 0.25));
-      line(TILE_WIDTH * (i + 0.25), 0, TILE_WIDTH * (i + 0.25), TILE_WIDTH * (this.length + 0.5));
-    }
-
-    // Axis
-    stroke(150);
-    fill(150)
-    ellipse(TILE_WIDTH * 4.25, TILE_WIDTH * 4.25, 5);
-    line(0, TILE_WIDTH * 4.25, TILE_WIDTH * (this.length + 0.5), TILE_WIDTH * 4.25);
-    line(TILE_WIDTH * 4.25, 0, TILE_WIDTH * 4.25, TILE_WIDTH * (this.length + 0.5));
-    line(TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25);
-    line(TILE_WIDTH * 7.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 7.25);
-    stroke(0, 150, 0);
-    line(TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25, TILE_WIDTH * 1.25);
-    stroke(150, 0, 0);
-    line(TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 1.25, TILE_WIDTH * 7.25);
-
-    // Tiles
-    translate(TILE_WIDTH / 4, TILE_WIDTH / 4);
-    textAlign(CENTER, CENTER);
-    for (let y = 0; y < this.length; y++) {
-      for (let x = 0; x < this[y].length; x++) {
-        push();
-        translate(TILE_WIDTH * x, TILE_WIDTH * y);
-
-        for (let tile of this[y][x]) {
-          tile.draw(-TILE_WIDTH / 4, -TILE_WIDTH / 4);
-        }
-
-        pop();
-      }
-    }
-
-    // Preview current tile
-    if (mouseX >= 50 && mouseX < 50 + TILE_WIDTH * this.length &&
-      mouseY >= 50 && mouseY < 50 + TILE_WIDTH * this.length) {
-
-      let x = floor((mouseX - 50) / TILE_WIDTH);
-      let y = floor((mouseY - 50) / TILE_WIDTH);
-
-      push();
-      translate(x * TILE_WIDTH, y * TILE_WIDTH);
-      tint(255, 100);
-      let playedTile = new PlayedTile(tileSelector.value, currentOrientation, currentFlip);
-      playedTile.draw(-TILE_WIDTH / 4, -TILE_WIDTH / 4);
-
-      pop();
-    }
-
-    pop();
-  }
-
-  onClick(mouseX, mouseY) {
-    if (mouseX < 50 || mouseX >= 50 + TILE_WIDTH * this.length ||
-      mouseY < 50 || mouseY >= 50 + TILE_WIDTH * this.length) return;
-
-    let x = floor((mouseX - 50) / TILE_WIDTH);
-    let y = floor((mouseY - 50) / TILE_WIDTH);
-
-    let playedTile = new PlayedTile(tileSelector.value, currentOrientation, currentFlip);
-    grid[y][x].push(playedTile);
-
-    this.moves.push({
-      x,
-      y
-    });
-
-    this.toLocalStorage();
-  }
-
-  cancel() {
+  cancelLastMove() {
     if (this.moves.length <= 0) return;
 
     let move = this.moves.pop();
     this[move.y][move.x].pop();
+
+    this.toLocalStorage();
+  }
+
+  addMove(x, y, tile) {
+    this[y][x].push(tile);
+    this.moves.push({ x, y });
+
+    this.toLocalStorage();
   }
 
   toLocalStorage() {
