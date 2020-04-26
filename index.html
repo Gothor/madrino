@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.10.2/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.10.2/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -8,7 +9,30 @@
 
   </head>
   <body>
-    <script src="models.js"></script>
-    <script src="sketch.js"></script>
+    <script src="js/helpers/CursorHelper.js"></script>
+
+    <script src="js/models/Component.js"></script>
+    <script src="js/models/Eventable.js"></script>
+    <script src="js/models/GameObject.js"></script>
+    <script src="js/models/Grid.js"></script>
+    <script src="js/models/PlayedTile.js"></script>
+    <script src="js/models/SelectableGroup.js"></script>
+    <script src="js/models/Sprite.js"></script>
+    <script src="js/models/Tile.js"></script>
+
+    <script src="js/models/components/Collider.js"></script>
+    <script src="js/models/components/ImageComponent.js"></script>
+    <script src="js/models/components/Rectangle.js"></script>
+    <script src="js/models/components/RectangleCollider.js"></script>
+    <script src="js/models/components/Text.js"></script>
+
+    <script src="js/models/game-objects/Clickable.js"></script>
+    <script src="js/models/game-objects/Button.js"></script>
+    <script src="js/models/game-objects/GridView.js"></script>
+    <script src="js/models/game-objects/Selectable.js"></script>
+    <script src="js/models/game-objects/TileSelector.js"></script>
+    <script src="js/models/game-objects/WallTile.js"></script>
+
+    <script src="js/sketch.js"></script>
   </body>
 </html>
